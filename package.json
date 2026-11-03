@@ -1,0 +1,40 @@
+{
+  "name": "frame-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FRAME STUDIO — Create your own visual language. Professional online graphic design studio.",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2",
+    "idb": "^8",
+    "jspdf": "^4",
+    "konva": "^10",
+    "lucide-react": "latest",
+    "next": "^16",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-konva": "^19.3.2",
+    "sharp": "latest",
+    "zustand": "^5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "fake-indexeddb": "^6",
+    "happy-dom": "latest",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^5"
+  }
+}

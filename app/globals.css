@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ------------------------------------------------------------------
+   FRAME STUDIO design tokens
+   Swiss rigor: one spacing scale (4px), hairline borders, near-zero radii.
+   ------------------------------------------------------------------ */
+:root {
+  --paper: #f0ede5;
+  --ink: #171717;
+  --anthracite: #292929;
+  --neutral: #888888;
+  --signal: #ff4d00;
+  --lavender: #e9daf5;
+
+  --accent: var(--signal);
+  --accent-ink: #ffffff;
+
+  --bg: var(--paper);
+  --bg-raised: #f7f5f0;
+  --bg-sunken: #e6e2d8;
+  --fg: var(--ink);
+  --fg-muted: #5f5d58;
+  --fg-subtle: #8a877f;
+  --line: rgba(23, 23, 23, 0.14);
+  --line-strong: rgba(23, 23, 23, 0.32);
+  --workspace: #dcd8ce;
+  --focus: var(--accent);
+  --danger: #d4380d;
+  --ok: #2f7d4f;
+
+  --radius: 2px;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #121212;
+  --bg-raised: #1a1a1a;
+  --bg-sunken: #0c0c0c;
+  --fg: var(--paper);
+  --fg-muted: #b3afa6;
+  --fg-subtle: #7d7a74;
+  --line: rgba(240, 237, 229, 0.1);
+  --line-strong: rgba(240, 237, 229, 0.24);
+  --workspace: #0a0a0a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-anthracite: var(--anthracite);
+  --color-neutral-grey: var(--neutral);
+  --color-signal: var(--signal);
+  --color-lavender: var(--lavender);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-bg: var(--bg);
+  --color-raised: var(--bg-raised);
+  --color-sunken: var(--bg-sunken);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-subtle: var(--fg-subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-workspace: var(--workspace);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --font-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-display: var(--font-grotesk), "Space Grotesk", var(--font-inter), sans-serif;
+  --font-mono: var(--font-mono-face), "JetBrains Mono", ui-monospace, monospace;
+  --radius-sm: 2px;
+  --ease-swiss: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --animate-rise: rise 0.6s var(--ease-swiss) both;
+  --animate-fade: fade 0.4s ease both;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Micro-typographic label used throughout the tool UI: numbered, tracked mono. */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-subtle);
+}
+
+.hairline {
+  border-color: var(--line);
+}
+
+/* Range sliders — thin rule with a square thumb. */
+input[type="range"].fs-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  background: transparent;
+  width: 100%;
+  cursor: pointer;
+}
+input[type="range"].fs-range::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--line-strong);
+}
+input[type="range"].fs-range::-moz-range-track {
+  height: 1px;
+  background: var(--line-strong);
+}
+input[type="range"].fs-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 9px;
+  height: 9px;
+  margin-top: -4px;
+  background: var(--fg);
+  border-radius: 0;
+  transition: transform 0.15s;
+}
+input[type="range"].fs-range::-moz-range-thumb {
+  width: 9px;
+  height: 9px;
+  background: var(--fg);
+  border: 0;
+  border-radius: 0;
+}
+input[type="range"].fs-range:hover::-webkit-slider-thumb,
+input[type="range"].fs-range:focus-visible::-webkit-slider-thumb {
+  background: var(--accent);
+  transform: scale(1.25);
+}
+
+input[type="color"].fs-swatch {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid var(--line-strong);
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  background: none;
+  cursor: pointer;
+}
+input[type="color"].fs-swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type="color"].fs-swatch::-webkit-color-swatch {
+  border: 0;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.checker {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #e5e5e5 25%, transparent 25%),
+    linear-gradient(-45deg, #e5e5e5 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e5e5e5 75%),
+    linear-gradient(-45deg, transparent 75%, #e5e5e5 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* CSS-only tooltips: [data-tip] on any .fs-tip element. Delay avoids flicker. */
+.fs-tip[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 60;
+  white-space: pre;
+  pointer-events: none;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 4px 7px;
+  opacity: 0;
+  transform: translate(var(--tx, -50%), var(--ty, 4px));
+  transition: opacity 0.12s ease 0s;
+  left: 50%;
+  top: 100%;
+}
+[data-theme="dark"] .fs-tip[data-tip]::after {
+  background: var(--paper);
+  color: var(--ink);
+}
+.fs-tip[data-tip-side="top"]::after { top: auto; bottom: 100%; --ty: -4px; }
+.fs-tip[data-tip-side="right"]::after { left: 100%; top: 50%; --tx: 6px; --ty: -50%; }
+.fs-tip[data-tip-side="left"]::after { left: auto; right: 100%; top: 50%; --tx: -6px; --ty: -50%; }
+.fs-tip[data-tip]:hover::after,
+.fs-tip[data-tip]:focus-visible::after {
+  opacity: 1;
+  transition-delay: 0.35s;
+}
