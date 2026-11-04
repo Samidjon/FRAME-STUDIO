@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Heart, RefreshCw } from "lucide-react";
 import { Button, EmptyState, Toggle, cx } from "@/components/shared/ui";
 import { getProvider } from "@/core/composition/engine";
+import { withSenitukangBrand } from "@/core/brand/senitukang";
 import { getGenStyle, styleFontFamilies } from "@/core/composition/styles";
 import type { GeneratorInput } from "@/core/composition/types";
 import { browserMeasure } from "@/core/text/layout";
@@ -65,7 +66,9 @@ export function GeneratorStudio() {
         await withTimeout(loadFonts(styleFontFamilies(form.style)), 5000);
         // Yield a frame so the loading state paints before the synchronous layout work.
         await new Promise((r) => requestAnimationFrame(() => r(null)));
-        const variants = await getProvider().generate(input, browserMeasure);
+        const generated = await getProvider().generate(input, browserMeasure);
+        // An uploaded logo takes the logo slot; otherwise every result carries the company mark.
+        const variants = input.logo ? generated : generated.map((v) => ({ ...v, doc: withSenitukangBrand(v.doc, browserMeasure) }));
         if (id !== req.current) return;
         if (!variants.length) throw new Error("No composition passed the layout checks. Try a shorter title or a different format.");
         const title = form.title.trim() || "Untitled";

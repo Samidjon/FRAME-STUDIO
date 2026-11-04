@@ -16,6 +16,7 @@ import { computeGrid, spanRect } from "@/core/geometry/grid";
 import type { GridSettings } from "@/types/canvas";
 import type { ImageEffects, ImageLayer, Layer, ShapeLayer, TextLayer, TextureKind, TextureLayer } from "@/types/layer";
 import type { DesignDocument } from "@/types/project";
+import { withSenitukangBrand } from "@/core/brand/senitukang";
 
 export const INK = "#171717";
 export const PAPER = "#F0EDE5";
@@ -295,7 +296,7 @@ export function showcaseDoc(id: string): DesignDocument {
   let d = cache.get(id);
   if (!d) {
     const item = SHOWCASE.find((s) => s.id === id) ?? SHOWCASE[0];
-    d = item.build();
+    d = withSenitukangBrand(item.build());
     cache.set(id, d);
   }
   return d;
@@ -414,5 +415,5 @@ export function generatorDoc(variant: number, pal: Palette): DesignDocument {
       ];
     }
   }
-  return createDocument(GW, GH, { background: { color: bg, transparent: false }, grid: GEN_GRID, layers });
+  return withSenitukangBrand(createDocument(GW, GH, { background: { color: bg, transparent: false }, grid: GEN_GRID, layers }));
 }
