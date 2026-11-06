@@ -8,7 +8,7 @@ const grotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk", 
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono-face", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "FRAME STUDIO — Create your own visual language", template: "%s · FRAME STUDIO" },
+  title: { default: "Senitukang Studio — Create your own Senitukang poster", template: "%s · Senitukang Studio" },
   description:
     "A professional online graphic design studio: Swiss grids, editable templates, an algorithmic composition generator and high-resolution export.",
 };

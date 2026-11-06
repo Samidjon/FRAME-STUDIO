@@ -105,7 +105,7 @@ export function TemplatesCatalogue() {
         </div>
         <p className="max-w-md text-sm leading-relaxed text-muted md:col-span-5 md:justify-self-end">
           Professional starting points built on mathematical grids. Every template opens as fully editable layers — type, shapes, images and
-          textures — ready for your own visual language.
+          textures — ready for your own Senitukang poster.
         </p>
       </header>
 

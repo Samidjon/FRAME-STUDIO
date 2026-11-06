@@ -57,7 +57,7 @@ const LIKES_KEY = "explore:likes";
 const COLLECTIONS_KEY = "explore:collections";
 const ALL = "__all";
 
-const SOURCE_LABEL: Record<Source, string> = { cloud: "Community", template: "FRAME STUDIO", local: "Published locally" };
+const SOURCE_LABEL: Record<Source, string> = { cloud: "Community", template: "Senitukang Studio", local: "Published locally" };
 
 export default function ExplorePage() {
   const router = useRouter();
@@ -108,7 +108,7 @@ export default function ExplorePage() {
           category: t.category,
           tags: t.tags,
           description: t.description,
-          author: { name: "FRAME STUDIO", username: null },
+          author: { name: "Senitukang Studio", username: null },
           publishedAt: 0,
           likeCount: 0,
           likedByMe: false,
@@ -378,7 +378,7 @@ export default function ExplorePage() {
             <Info size={15} className="mt-0.5 shrink-0 text-accent" />
             <p>
               <span className="font-medium">Local mode — connect Supabase to publish and browse community designs.</span>{" "}
-              <span className="text-muted">Showing the FRAME STUDIO showcase and designs you published on this device. Likes and collections are stored in this browser.</span>
+              <span className="text-muted">Showing the Senitukang Studio showcase and designs you published on this device. Likes and collections are stored in this browser.</span>
             </p>
           </div>
         )}

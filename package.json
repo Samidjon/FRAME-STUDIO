@@ -2,7 +2,7 @@
   "name": "frame-studio",
   "version": "0.1.0",
   "private": true,
-  "description": "FRAME STUDIO — Create your own visual language. Professional online graphic design studio.",
+  "description": "Senitukang Studio — Create your own Senitukang poster. Professional online graphic design studio.",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",

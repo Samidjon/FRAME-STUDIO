@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Cloud mirror for FRAME STUDIO.
+ * Cloud mirror for Senitukang Studio.
  *
  * IndexedDB is always the primary copy (lib/storage/*). When Supabase is
  * configured AND a user is signed in, this module mirrors projects / assets to
@@ -55,7 +55,7 @@ export interface ProjectSavedDetail {
 
 function requireClient(): SupabaseClient {
   const sb = getSupabase();
-  if (!sb) throw new CloudError("Cloud not configured — FRAME STUDIO is running in local mode.", "not_configured");
+  if (!sb) throw new CloudError("Cloud not configured — Senitukang Studio is running in local mode.", "not_configured");
   return sb;
 }
 

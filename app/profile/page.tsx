@@ -373,7 +373,7 @@ function LocalProfile() {
 
   return (
     <>
-      <PageHeader index="06 — PROFILE" title="Profile" lead={cloud ? "You are not signed in. Your work is saved on this device." : "FRAME STUDIO is running in local mode. Everything is stored in this browser."} />
+      <PageHeader index="06 — PROFILE" title="Profile" lead={cloud ? "You are not signed in. Your work is saved on this device." : "Senitukang Studio is running in local mode. Everything is stored in this browser."} />
       <div className="grid gap-10 py-10 lg:grid-cols-[1fr_1fr]">
         <section className="flex flex-col gap-6">
           <div className="flex items-start gap-5">
@@ -480,7 +480,7 @@ function ProfileRouter() {
       <EmptyState
         index="LOCAL MODE"
         title="Profiles need the cloud."
-        body="Public designer profiles are available when FRAME STUDIO is connected to Supabase."
+        body="Public designer profiles are available when Senitukang Studio is connected to Supabase."
         action={
           <Link href="/explore" className="text-sm underline">
             Back to Explore

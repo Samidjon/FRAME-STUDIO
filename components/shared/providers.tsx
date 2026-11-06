@@ -42,7 +42,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode; fallback?: (
     return { error };
   }
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("[FRAME STUDIO] UI error", error, info.componentStack);
+    console.error("[Senitukang Studio] UI error", error, info.componentStack);
   }
   reset = () => this.setState({ error: null });
   render() {

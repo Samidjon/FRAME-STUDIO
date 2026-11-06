@@ -180,7 +180,7 @@ const stillness: Template = {
     const mono = { fontFamily: "IBM Plex Mono", fontSize: 13, letterSpacing: 140 };
     k.meta("No. 010", content.x, content.y, 240, { ...mono, name: "Index" });
     k.meta("2026", content.x + content.width - 240, content.y, 240, { ...mono, align: "right", name: "Year" });
-    k.meta("FRAME STUDIO — Minimal Series", content.x, content.y + content.height - 18, content.width, { ...mono, align: "center", fillRole: "muted", name: "Credit" });
+    k.meta("Senitukang Studio — Minimal Series", content.x, content.y + content.height - 18, content.width, { ...mono, align: "center", fillRole: "muted", name: "Credit" });
     k.texture("paper", { seed: 808, opacity: 0.25, blendMode: "multiply", color: k.color("ink"), name: "Paper grain" });
     return k.doc();
   },

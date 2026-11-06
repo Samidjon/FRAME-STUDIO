@@ -43,7 +43,7 @@ function LocalModeCard() {
       <div className="label-mono">Local mode</div>
       <h2 className="font-display text-3xl font-semibold tracking-tight">Accounts are not enabled here.</h2>
       <p className="text-sm text-muted">
-        This FRAME STUDIO installation is not connected to a cloud backend. You can still use every design tool — projects, assets and fonts are saved in this browser automatically. Export JSON backups from My
+        This Senitukang Studio installation is not connected to a cloud backend. You can still use every design tool — projects, assets and fonts are saved in this browser automatically. Export JSON backups from My
         Projects to move work between devices.
       </p>
       <p className="text-[12px] text-subtle">To enable accounts, set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY and restart the app.</p>

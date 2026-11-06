@@ -196,7 +196,7 @@ export async function exportPdfDetailed(doc: DesignDocument, opts: PdfOptions): 
   const { width: pw, height: ph } = pdfPageSize(doc, opts.pageSize);
   const p = placement(doc, pw, ph);
   const pdf = new jsPDF({ unit: "pt", format: [pw, ph], orientation: pw > ph ? "landscape" : "portrait", compress: true });
-  pdf.setProperties({ title: opts.title ?? "FRAME STUDIO export", creator: "FRAME STUDIO" });
+  pdf.setProperties({ title: opts.title ?? "Senitukang Studio export", creator: "Senitukang Studio" });
 
   const artW = doc.width * p.s;
   const artH = doc.height * p.s;

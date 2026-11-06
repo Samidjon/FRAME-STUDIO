@@ -14,7 +14,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /** File-system safe, lowercase-ish name derived from a project title. */
-export function safeFilename(name: string | null | undefined, fallback = "frame-studio"): string {
+export function safeFilename(name: string | null | undefined, fallback = "senitukang-studio"): string {
   const cleaned = (name ?? "")
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "")

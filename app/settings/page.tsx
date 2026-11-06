@@ -317,7 +317,7 @@ export default function SettingsPage() {
             <Section n="05" title="About" id="about">
               <div className="grid gap-6 pt-5 md:grid-cols-2">
                 <p className="text-sm text-muted">
-                  FRAME STUDIO is a graphic design studio built on mathematical grids, editorial typography and image processing. Your work stays on your device unless you sign in, and nothing is published without your
+                  Senitukang Studio is a graphic design studio built on mathematical grids, editorial typography and image processing. Your work stays on your device unless you sign in, and nothing is published without your
                   explicit consent.
                 </p>
                 <dl className="grid grid-cols-2 gap-y-2 font-mono text-[11px]">

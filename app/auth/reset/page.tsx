@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
         <div className="mt-8 border border-line-strong p-6 md:p-8">
           {!isCloudConfigured ? (
             <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted">Accounts are not enabled on this installation — FRAME STUDIO is running in local mode, so there is no password to reset.</p>
+              <p className="text-sm text-muted">Accounts are not enabled on this installation — Senitukang Studio is running in local mode, so there is no password to reset.</p>
               <div>
                 <Button variant="primary" onClick={() => router.push("/create")}>
                   Continue without account

@@ -1,32 +1,34 @@
 import type { Rect } from "@/types/canvas";
-import type { Layer, ShapeLayer } from "@/types/layer";
+import type { Layer, ShapeLayer, TextLayer } from "@/types/layer";
 import type { DesignDocument } from "@/types/project";
 import { createShapeLayer } from "@/core/document/factory";
 import { intersectionArea, layerBounds } from "@/core/geometry/transform";
 import { contrastRatio, mix } from "@/core/rendering/color";
 import { kitMeasure } from "@/core/templates/kit";
 import { layoutText, type MeasureFn } from "@/core/text/layout";
-import { LOCKUP_PATH, LOCKUP_VIEWBOX, SYMBOL_PATH, SYMBOL_VIEWBOX } from "./logo-paths";
+import { SYMBOL_PATH, SYMBOL_VIEWBOX } from "./logo-paths";
 
 /**
- * The Senitukang logo is the hero of every example design. It is one vector
- * layer flagged `brandLocked`: users can move and scale it, but the editor store
- * keeps it on the page (see sanitizeBrand).
+ * Company branding for every example design. The name replaces the main title
+ * as ordinary editable text. The symbol replaces a graphic form as one vector
+ * layer flagged `brandLocked`: users can move and scale it, but the editor
+ * store keeps it on the page (see sanitizeBrand).
  */
 
 export const SENITUKANG = {
+  name: "Senitukang",
   url: "https://senitukang.com",
   ink: "#171717",
   paper: "#F0EDE5",
   symbol: { path: SYMBOL_PATH, viewBox: SYMBOL_VIEWBOX },
-  lockup: { path: LOCKUP_PATH, viewBox: LOCKUP_VIEWBOX },
 } as const;
 
-type Variant = "symbol" | "lockup";
+const ASPECT = SENITUKANG.symbol.viewBox.width / SENITUKANG.symbol.viewBox.height;
 
-const aspectOf = (v: Variant) => SENITUKANG[v].viewBox.width / SENITUKANG[v].viewBox.height;
-
-/** Smallest allowed logo width, relative to the page's short side. */
+/** Logo width limits on a design, relative to the page's short side. */
+const LOGO_MAX = 0.3;
+const LOGO_MIN = 0.13;
+/** Smallest width a user can scale the logo down to. */
 const MIN_WIDTH = 0.08;
 /** Below this contrast against a flat page the logo would effectively vanish. */
 const MIN_CONTRAST = 1.6;
@@ -49,14 +51,40 @@ const hitsText = (r: Rect, text: Rect[]) => text.reduce((sum, t) => sum + inters
 
 const inflate = (r: Rect, p: number): Rect => ({ x: r.x - p, y: r.y - p, width: r.width + p * 2, height: r.height + p * 2 });
 
-/** Fit a logo of the given aspect, centred, inside a box. */
-function fitIn(box: Rect, aspect: number, scale = 1): Rect {
-  const width = Math.min(box.width, box.height * aspect) * scale;
-  const height = width / aspect;
-  return { x: box.x + (box.width - width) / 2, y: box.y + (box.height - height) / 2, width, height };
+/* ---------------------------------------------------------------- the name */
+
+const CJK = /[　-ヿ㐀-鿿＀-￯]/;
+
+/** The headline: the largest horizontal Latin text, preferring real titles over numerals, glyphs, kanji or small print. */
+function findTitle(doc: DesignDocument): TextLayer | null {
+  const lines = doc.layers.filter(
+    (l): l is TextLayer => l.type === "text" && l.visible && !l.vertical && !CJK.test(l.text) && (l.text.match(/\p{L}/gu) ?? []).length >= 3,
+  );
+  const largest = (ls: TextLayer[]) => ls.reduce<TextLayer | null>((best, l) => (!best || l.fontSize > best.fontSize ? l : best), null);
+  return largest(lines.filter((l) => l.role === "display" || l.role === "heading")) ?? largest(lines.filter((l) => l.role !== "metadata")) ?? largest(lines);
 }
 
-/** Studio images that read as light overall; the rest are dark. */
+/** Extended display faces, far wider than the shared width estimate assumes. */
+const WIDE_FACES = new Set(["Unbounded", "Syne", "Archivo Black", "Rubik Mono One", "Major Mono Display", "Space Mono"]);
+
+/** Set the company name in the title's own style, scaled to fill the title's box on one line. */
+function nameInTitle(title: TextLayer, doc: DesignDocument, measure: MeasureFn): TextLayer {
+  const text = SENITUKANG.name;
+  const naturalAt = (fontSize: number) => layoutText({ ...title, text, fontSize, width: 1e6, autoHeight: true }, measure).lines[0].width;
+  const oldHeight = layoutText(title, measure).height;
+  // Estimates run narrow for heavy or capital settings, so leave room: the name must never break.
+  const safety = WIDE_FACES.has(title.fontFamily) ? 0.62 : title.uppercase || title.fontWeight >= 800 ? 0.84 : 0.94;
+  const widthFit = (title.fontSize * title.width * safety) / Math.max(1, naturalAt(title.fontSize));
+  const fontSize = Math.max(6, Math.floor(Math.min(widthFit, title.fontSize * 1.6, oldHeight / title.lineHeight)));
+  const height = fontSize * title.lineHeight;
+  // Keep the line where the title block ended, so spacing to the copy below holds.
+  const y = title.rotation ? title.y : title.y + Math.max(0, oldHeight - height);
+  const room = title.align === "left" && !title.rotation ? Math.max(title.width, doc.width - title.x) : title.width;
+  return { ...title, text, name: "Senitukang name", fontSize, height, y, width: room };
+}
+
+/* ---------------------------------------------------------------- the logo */
+
 const LIGHT_IMAGES = new Set(["builtin:horizon", "builtin:concrete", "builtin:fold", "builtin:ridges"]);
 
 /** Rough tone of an image layer, which can't be sampled in pure code. */
@@ -64,7 +92,7 @@ function imageTone(l: Extract<Layer, { type: "image" }>): string {
   const e = l.effects;
   if (e.halftone.enabled) return e.halftone.color;
   if (e.duotone.enabled) return mix(e.duotone.shadow, e.duotone.highlight, 0.5);
-  return LIGHT_IMAGES.has(l.assetId) ? "#D8D4CC" : "#2A2A2A";
+  return LIGHT_IMAGES.has(l.assetId) ? "#B8B4AC" : "#2A2A2A";
 }
 
 /** Colours a rect visibly sits on: anything covering a meaningful part of it. */
@@ -85,8 +113,11 @@ function surfacesUnder(doc: DesignDocument, r: Rect, skip?: Layer): string[] {
 
 const worstContrast = (color: string, surfaces: string[]) => Math.min(...surfaces.map((c) => contrastRatio(color, c)));
 
-/** The composition's main graphic: its largest solid form that doesn't carry text. */
-function findHeroShape(doc: DesignDocument, text: Rect[]): ShapeLayer | null {
+const contrastPick = (surfaces: string[]) =>
+  worstContrast(SENITUKANG.ink, surfaces) >= worstContrast(SENITUKANG.paper, surfaces) ? SENITUKANG.ink : SENITUKANG.paper;
+
+/** A compact graphic form the logo can stand in for: rounder forms first, then the largest. */
+function findLogoShape(doc: DesignDocument, text: Rect[]): ShapeLayer | null {
   const page = doc.width * doc.height;
   let best: ShapeLayer | null = null;
   let bestScore = 0;
@@ -94,11 +125,10 @@ function findHeroShape(doc: DesignDocument, text: Rect[]): ShapeLayer | null {
     if (l.type !== "shape" || !l.visible || !l.fill || l.opacity < 0.5 || l.shape === "line" || l.shape === "path") continue;
     const b = layerBounds(l);
     const area = b.width * b.height;
-    if (area < page * 0.035 || area > page * 0.7) continue;
+    const aspect = b.width / Math.max(1, b.height);
+    if (area < page * 0.002 || area > page * 0.7 || aspect < 0.55 || aspect > 1.8) continue;
     if (hitsText(b, text) > area * 0.12) continue; // a panel behind copy, not a graphic
-    const edges = [b.x <= 1, b.y <= 1, b.x + b.width >= doc.width - 1, b.y + b.height >= doc.height - 1].filter(Boolean).length;
-    if (l.shape === "rect" && edges >= 2) continue; // a page band or block
-    const score = area * (l.shape === "rect" ? 1 : 1.6);
+    const score = area * (l.shape === "rect" ? 1 : 8);
     if (score > bestScore) {
       best = l;
       bestScore = score;
@@ -107,25 +137,26 @@ function findHeroShape(doc: DesignDocument, text: Rect[]): ShapeLayer | null {
   return best;
 }
 
-/** Largest text-free spot on the page, nearest the main image (or the page centre). */
-function findFreeSpot(doc: DesignDocument, text: Rect[], variant: Variant, short: number): Rect | null {
-  const aspect = aspectOf(variant);
+const logoRect = (cx: number, cy: number, width: number): Rect => ({ x: cx - width / 2, y: cy - width / ASPECT / 2, width, height: width / ASPECT });
+
+const insidePage = (r: Rect, doc: DesignDocument, inset: number) =>
+  r.x >= inset && r.y >= inset && r.x + r.width <= doc.width - inset && r.y + r.height <= doc.height - inset;
+
+/** Text-free spot nearest the main image (or the page centre), at a moderate size. */
+function findFreeSpot(doc: DesignDocument, text: Rect[], short: number): Rect | null {
   const inset = short * 0.05;
   const pad = short * 0.02;
   const images = doc.layers.filter((l) => l.type === "image" && l.visible).map(layerBounds);
-  const focus = images.sort((a, b) => b.width * b.height - a.width * a.height)[0] ?? { x: 0, y: 0, width: doc.width, height: doc.height };
+  const focus = [...images].sort((a, b) => b.width * b.height - a.width * a.height)[0] ?? { x: 0, y: 0, width: doc.width, height: doc.height };
   const fx = Math.max(0, focus.x) + Math.min(focus.width, doc.width) / 2;
   const fy = Math.max(0, focus.y) + Math.min(focus.height, doc.height) / 2;
   const surfaces = [
     ...images,
     ...doc.layers.filter((l) => l.type === "shape" && l.visible && !!l.fill && l.shape !== "line" && l.width * l.height > doc.width * doc.height * 0.02).map(layerBounds),
   ];
-  // Sizes are the logo's width: the lockup needs more width for the same presence.
-  const unit = variant === "lockup" ? 1.5 : 1;
-  for (const s of [0.66, 0.58, 0.5, 0.44, 0.38, 0.32, 0.26, 0.2, 0.15]) {
-    const width = Math.min(short * s * unit, doc.width - inset * 2);
-    const height = width / aspect;
-    if (height > doc.height - inset * 2) continue;
+  for (const s of [LOGO_MAX, 0.26, 0.22, 0.18, 0.15, LOGO_MIN, 0.1]) {
+    const width = short * s;
+    const height = width / ASPECT;
     let best: Rect | null = null;
     let bestD = Infinity;
     for (let i = 0; i <= 28; i++)
@@ -150,7 +181,7 @@ function findFreeSpot(doc: DesignDocument, text: Rect[], variant: Variant, short
   return null;
 }
 
-function logoLayer(variant: Variant, r: Rect, fill: string, fillRole: ShapeLayer["fillRole"]): ShapeLayer {
+function logoLayer(r: Rect, fill: string, fillRole: ShapeLayer["fillRole"]): ShapeLayer {
   return createShapeLayer("path", {
     name: "Senitukang logo",
     brandLocked: true,
@@ -158,8 +189,8 @@ function logoLayer(variant: Variant, r: Rect, fill: string, fillRole: ShapeLayer
     y: r.y,
     width: r.width,
     height: r.height,
-    pathData: SENITUKANG[variant].path,
-    pathViewBox: SENITUKANG[variant].viewBox,
+    pathData: SENITUKANG.symbol.path,
+    pathViewBox: SENITUKANG.symbol.viewBox,
     fill,
     fillRole,
     stroke: null,
@@ -167,45 +198,42 @@ function logoLayer(variant: Variant, r: Rect, fill: string, fillRole: ShapeLayer
   });
 }
 
-const contrastPick = (surfaces: string[]) =>
-  worstContrast(SENITUKANG.ink, surfaces) >= worstContrast(SENITUKANG.paper, surfaces) ? SENITUKANG.ink : SENITUKANG.paper;
-
 /**
- * Return a copy of the document with the logo as its hero: it takes the place of
- * the main graphic when there is one, otherwise the largest text-free area.
+ * Return a copy of the document carrying the brand as two separate elements:
+ * the name in place of the main title, the logo in place of a graphic form
+ * (or, when there is none, in the clearest area).
  */
 export function withSenitukangBrand(doc: DesignDocument, measure: MeasureFn = kitMeasure): DesignDocument {
   if (doc.layers.some(isBrandLayer)) return doc;
   const short = Math.min(doc.width, doc.height);
-  const text = visibleText(doc, measure);
-  const pad = short * 0.02;
 
-  const hero = findHeroShape(doc, text);
-  if (hero) {
-    const box = layerBounds(hero);
-    const variant: Variant = box.width / box.height >= 2 ? "lockup" : "symbol";
-    for (const scale of [1, 0.92, 0.84, 0.76, 0.68]) {
-      const r = fitIn(box, aspectOf(variant), scale);
-      if (hitsText(inflate(r, pad), text) > 0) continue;
-      const under = surfacesUnder(doc, r, hero);
-      const keep = worstContrast(hero.fill!, under) >= 2.2;
+  const title = findTitle(doc);
+  const named: DesignDocument = title ? { ...doc, layers: doc.layers.map((l) => (l === title ? nameInTitle(title, doc, measure) : l)) } : doc;
+  const text = visibleText(named, measure);
+  const pad = short * 0.02;
+  const inset = short * 0.02;
+
+  const form = findLogoShape(named, text);
+  if (form) {
+    const b = layerBounds(form);
+    const target = Math.min(short * LOGO_MAX, Math.max(short * LOGO_MIN, Math.min(b.width, b.height * ASPECT)));
+    for (const k of [1, 0.88, 0.76, 0.66]) {
+      const r = logoRect(b.x + b.width / 2, b.y + b.height / 2, target * k);
+      if (!insidePage(r, named, inset) || hitsText(inflate(r, pad), text) > 0) continue;
+      const under = surfacesUnder(named, r, form);
+      const keep = worstContrast(form.fill!, under) >= 2.2;
       return {
-        ...doc,
-        layers: [...doc.layers.filter((l) => l !== hero), logoLayer(variant, r, keep ? hero.fill! : contrastPick(under), keep ? hero.fillRole : "none")],
+        ...named,
+        layers: [...named.layers.filter((l) => l !== form), logoLayer(r, keep ? form.fill! : contrastPick(under), keep ? form.fillRole : "none")],
       };
     }
   }
 
-  // No main graphic: the full lockup when it has room, so the name is on the page.
-  const lockup = findFreeSpot(doc, text, "lockup", short);
-  const symbol = findFreeSpot(doc, text, "symbol", short);
-  const useLockup = lockup && (!symbol || lockup.width >= short * 0.42);
-  const variant: Variant = useLockup ? "lockup" : "symbol";
-  const r = (useLockup ? lockup : symbol) ?? fitIn({ x: short * 0.05, y: short * 0.05, width: short * 0.15, height: short * 0.15 }, aspectOf("symbol"));
-  const under = surfacesUnder(doc, r);
-  const flatPage = !doc.background.transparent && under.length === 1 && under[0] === doc.background.color;
+  const r = findFreeSpot(named, text, short) ?? logoRect(short * 0.12, short * 0.12, short * LOGO_MIN);
+  const under = surfacesUnder(named, r);
+  const flatPage = !named.background.transparent && under.length === 1 && under[0] === named.background.color;
   const fill = contrastPick(under);
-  return { ...doc, layers: [...doc.layers, logoLayer(variant, r, fill, flatPage ? (fill === SENITUKANG.ink ? "ink" : "paper") : "none")] };
+  return { ...named, layers: [...named.layers, logoLayer(r, fill, flatPage ? (fill === SENITUKANG.ink ? "ink" : "paper") : "none")] };
 }
 
 /**

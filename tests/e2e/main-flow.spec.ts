@@ -33,7 +33,7 @@ test.beforeEach(({ page }) => {
 test("complete design journey", async ({ page }) => {
   // 1. Open the site
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(/visual language/i);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(/Senitukang poster/i);
 
   // 2–3. Create a poster-format project
   await page.goto("/create");

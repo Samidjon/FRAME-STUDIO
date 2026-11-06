@@ -35,7 +35,7 @@ export function migrateProject(input: unknown): Project {
   let p = structuredClone(input) as Raw;
   if (!p.doc || !Array.isArray(p.doc.layers)) throw new ProjectFormatError("Project is missing its document");
   let v = typeof p.schemaVersion === "number" ? p.schemaVersion : 1;
-  if (v > CURRENT_SCHEMA_VERSION) throw new ProjectFormatError(`Project was saved by a newer version (v${v}) of FRAME STUDIO`);
+  if (v > CURRENT_SCHEMA_VERSION) throw new ProjectFormatError(`Project was saved by a newer version (v${v}) of Senitukang Studio`);
   while (v < CURRENT_SCHEMA_VERSION) {
     const step = steps[v];
     if (!step) throw new ProjectFormatError(`No migration from schema v${v}`);

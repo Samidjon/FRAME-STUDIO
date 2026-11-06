@@ -18,7 +18,7 @@ export function CallToAction() {
         <h2 id="cta-title" className="mt-8 font-display text-[clamp(3rem,10vw,10rem)] font-bold leading-[0.86] tracking-[-0.055em] text-fg">
           Begin with a grid.
           <br />
-          <span className="text-muted">End with a</span> language<span className="ml-[0.04em] inline-block h-[0.16em] w-[0.16em] bg-accent" aria-hidden />
+          <span className="text-muted">End with a</span> poster<span className="ml-[0.04em] inline-block h-[0.16em] w-[0.16em] bg-accent" aria-hidden />
         </h2>
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-12">
           <p className="max-w-md text-[15px] leading-relaxed text-muted md:col-span-5 md:col-start-1">

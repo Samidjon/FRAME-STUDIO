@@ -7,15 +7,22 @@ import { Menu, Moon, Sun, X } from "lucide-react";
 import { useUi } from "@/stores/ui-store";
 import { useAuth } from "@/stores/auth-store";
 import { cx } from "@/components/shared/ui";
+import { SYMBOL_PATH, SYMBOL_VIEWBOX } from "@/core/brand/logo-paths";
+
+export function BrandSymbol({ className }: { className?: string }) {
+  return (
+    <svg viewBox={`0 0 ${SYMBOL_VIEWBOX.width} ${SYMBOL_VIEWBOX.height}`} className={className} fill="currentColor" aria-hidden>
+      <path d={SYMBOL_PATH} />
+    </svg>
+  );
+}
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/" className={cx("group flex items-center gap-2.5", className)} aria-label="FRAME STUDIO home">
-      <span className="relative block h-5 w-5 border-[1.5px] border-fg" aria-hidden>
-        <span className="absolute left-[3px] top-[3px] h-[9px] w-[9px] bg-accent transition-transform duration-300 group-hover:translate-x-[2px] group-hover:translate-y-[2px]" />
-      </span>
+    <Link href="/" className={cx("group flex items-center gap-2.5", className)} aria-label="Senitukang Studio home">
+      <BrandSymbol className="h-5 w-auto text-fg transition-colors duration-300 group-hover:text-accent" />
       <span className="font-display text-[15px] font-bold tracking-[-0.02em]">
-        FRAME<span className="font-normal text-muted"> STUDIO</span>
+        Senitukang<span className="font-normal text-muted"> Studio</span>
       </span>
     </Link>
   );
@@ -115,7 +122,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-[1440px] gap-10 px-4 py-14 md:grid-cols-12 md:px-8">
         <div className="md:col-span-5">
           <Logo />
-          <p className="mt-4 max-w-sm text-sm text-muted">Create your own visual language. A studio for posters, covers, wallpapers and typographic compositions — built on mathematical grids.</p>
+          <p className="mt-4 max-w-sm text-sm text-muted">Create your own Senitukang poster. A studio for posters, covers, wallpapers and typographic compositions — built on mathematical grids.</p>
         </div>
         {[
           { t: "Studio", l: [["Create", "/create"], ["Templates", "/templates"], ["Generator", "/create?mode=generate"]] },
@@ -137,7 +144,7 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="mx-auto flex max-w-[1440px] items-center justify-between border-t border-line px-4 py-4 md:px-8">
-        <span className="label-mono">© {new Date().getFullYear()} FRAME STUDIO</span>
+        <span className="label-mono">© {new Date().getFullYear()} Senitukang Studio</span>
         <span className="label-mono">Grid · Type · Image</span>
       </div>
     </footer>

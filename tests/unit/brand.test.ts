@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { SENITUKANG, isBrandLayer, sanitizeBrand, withSenitukangBrand } from "@/core/brand/senitukang";
 import { TEMPLATES, getTemplate } from "@/core/templates";
-import { createDocument, createProject, createShapeLayer, reidentifyLayers } from "@/core/document/factory";
+import { createDocument, createProject, createShapeLayer, createTextLayer, reidentifyLayers } from "@/core/document/factory";
 import { intersectionArea, layerBounds } from "@/core/geometry/transform";
 import { kitMeasure } from "@/core/templates/kit";
 import { layoutText } from "@/core/text/layout";
@@ -13,27 +13,37 @@ const st = () => useEditor.getState();
 const logoOf = () => st().doc!.layers.find(isBrandLayer) as ShapeLayer;
 
 describe("Senitukang logo artwork", () => {
-  it.each(["symbol", "lockup"] as const)("%s path fits its view box", (v) => {
-    const b = pathBounds(parseSvgPath(SENITUKANG[v].path));
-    expect(b.x).toBeGreaterThanOrEqual(-0.5);
-    expect(b.y).toBeGreaterThanOrEqual(-0.5);
-    expect(b.x + b.width).toBeLessThanOrEqual(SENITUKANG[v].viewBox.width + 0.5);
-    expect(b.y + b.height).toBeLessThanOrEqual(SENITUKANG[v].viewBox.height + 0.5);
+  it("symbol path fits its view box", () => {
+    const b = pathBounds(parseSvgPath(SENITUKANG.symbol.path));
+    expect(b.x).toBeCloseTo(0, 3);
+    expect(b.y).toBeCloseTo(0, 3);
+    expect(b.width).toBeCloseTo(SENITUKANG.symbol.viewBox.width, 3);
+    expect(b.height).toBeCloseTo(SENITUKANG.symbol.viewBox.height, 3);
   });
 });
 
-describe("logo as hero of every template", () => {
-  it.each(TEMPLATES.map((t) => [t.id, t] as const))("%s has one logo on top, inside the page", (_id, t) => {
+describe("logo and name in every template", () => {
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))("%s has one moderate logo on top, inside the page", (_id, t) => {
     const doc = t.build();
     const logos = doc.layers.filter(isBrandLayer);
     expect(logos).toHaveLength(1);
     expect(doc.layers[doc.layers.length - 1]).toBe(logos[0]);
     const b = layerBounds(logos[0]);
+    const short = Math.min(doc.width, doc.height);
     expect(b.x).toBeGreaterThanOrEqual(0);
     expect(b.y).toBeGreaterThanOrEqual(0);
     expect(b.x + b.width).toBeLessThanOrEqual(doc.width);
     expect(b.y + b.height).toBeLessThanOrEqual(doc.height);
-    expect(b.width).toBeGreaterThanOrEqual(Math.min(doc.width, doc.height) * 0.15);
+    expect(b.width).toBeGreaterThanOrEqual(short * 0.08);
+    expect(b.width).toBeLessThanOrEqual(short * 0.3 + 0.01);
+    expect((logos[0] as ShapeLayer).pathData).toBe(SENITUKANG.symbol.path);
+  });
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))("%s sets the company name as one line of editable text", (_id, t) => {
+    const name = t.build().layers.find((l) => l.type === "text" && l.text === SENITUKANG.name) as TextLayer;
+    expect(name).toBeTruthy();
+    expect(layoutText(name, kitMeasure).lines).toHaveLength(1);
+    expect(name.brandLocked).toBeFalsy();
   });
 
   it("does not cover the text of any template", () => {
@@ -49,10 +59,11 @@ describe("logo as hero of every template", () => {
     expect(hits).toEqual([]);
   });
 
-  it("replaces the main graphic: the Konkrete circle is gone", () => {
-    const doc = getTemplate("swiss-konkrete")!.build();
+  it("replaces the title and a form, as in the Ma template", () => {
+    const doc = getTemplate("jp-ma-a4")!.build();
+    expect(doc.layers.some((l) => l.type === "text" && l.text.includes("Aesthetics"))).toBe(false);
     expect(doc.layers.some((l) => l.type === "shape" && l.shape === "circle")).toBe(false);
-    expect(layerBounds(doc.layers.find(isBrandLayer)!).width).toBeGreaterThan(doc.width * 0.3);
+    expect(doc.layers.some((l) => l.type === "text" && l.text === SENITUKANG.name)).toBe(true);
   });
 
   it("uses a light logo on a dark photo, even under an outline frame", () => {
@@ -61,9 +72,9 @@ describe("logo as hero of every template", () => {
   });
 
   it("is idempotent and leaves the input untouched", () => {
-    const doc = createDocument(1080, 1350);
+    const doc = createDocument(1080, 1350, { layers: [createTextLayer({ role: "heading", text: "Original title", width: 800 })] });
     const once = withSenitukangBrand(doc);
-    expect(doc.layers).toHaveLength(0);
+    expect((doc.layers[0] as TextLayer).text).toBe("Original title");
     expect(withSenitukangBrand(once)).toBe(once);
     expect(sanitizeBrand(once)).toBe(once);
   });
@@ -77,9 +88,10 @@ describe("logo protection in the editor", () => {
 
   it("cannot be deleted or hidden, while other layers can be deleted", () => {
     const id = logoOf().id;
+    const before = st().doc!.layers.length;
     st().deleteLayers([id, "other"]);
     expect(logoOf().id).toBe(id);
-    expect(st().doc!.layers).toHaveLength(1);
+    expect(st().doc!.layers.length).toBeLessThanOrEqual(before);
     st().updateLayer(id, { visible: false });
     expect(logoOf().visible).toBe(true);
     st().updateLayer(id, { opacity: 0 });

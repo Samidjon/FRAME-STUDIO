@@ -85,7 +85,7 @@ function Stage() {
   const hovered = hover ? showcaseItem(hover) : null;
 
   return (
-    <figure className="relative" aria-label="Interactive composition of posters designed in FRAME STUDIO">
+    <figure className="relative" aria-label="Interactive composition of posters designed in Senitukang Studio">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line pb-3">
         <div className="label-mono flex items-center gap-2">
@@ -210,8 +210,8 @@ export function Hero() {
             id="hero-title"
             className="animate-rise font-display text-[clamp(3.25rem,9.6vw,9.75rem)] font-bold leading-[0.86] tracking-[-0.055em] text-fg md:col-span-9"
           >
-            Create your own visual{" "}
-            language<span className="ml-[0.04em] inline-block h-[0.16em] w-[0.16em] translate-y-[-0.02em] bg-accent align-baseline" aria-hidden />
+            Create your own Senitukang{" "}
+            poster<span className="ml-[0.04em] inline-block h-[0.16em] w-[0.16em] translate-y-[-0.02em] bg-accent align-baseline" aria-hidden />
             <span className="sr-only">.</span>
           </h1>
           <div className="flex flex-col justify-end gap-6 md:col-span-3 [animation-delay:120ms] animate-rise">

@@ -3,7 +3,7 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* ------------------------------------------------------------------
-   FRAME STUDIO design tokens
+   Senitukang Studio design tokens
    Swiss rigor: one spacing scale (4px), hairline borders, near-zero radii.
    ------------------------------------------------------------------ */
 :root {

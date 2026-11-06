@@ -9,7 +9,7 @@ import { Hero } from "./hero";
 import { Inspiration } from "./inspiration";
 import { Tools } from "./tools";
 
-/** FRAME STUDIO landing page — eight numbered sections on one 12-column system. */
+/** Senitukang Studio landing page — eight numbered sections on one 12-column system. */
 export function Landing() {
   return (
     <>

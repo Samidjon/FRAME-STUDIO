@@ -1,5 +1,5 @@
 -- =====================================================================
--- FRAME STUDIO — initial schema
+-- Senitukang Studio — initial schema
 --
 -- Security model
 --   * The browser only ever uses the anon key; every table has RLS enabled.

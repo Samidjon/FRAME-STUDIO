@@ -240,7 +240,7 @@ export function buildSvg(doc: DesignDocument, opts: SvgBuildOptions = {}, notes:
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="${n(doc.width)}" height="${n(doc.height)}" viewBox="0 0 ${n(doc.width)} ${n(doc.height)}">` +
-    `<title>FRAME STUDIO export</title>` +
+    `<title>Senitukang Studio export</title>` +
     defsXml +
     `<g id="artwork" style="isolation:isolate">${body.join("")}</g>` +
     `</svg>\n`

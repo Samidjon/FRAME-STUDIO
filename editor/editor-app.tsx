@@ -41,6 +41,7 @@ import { SmartResizeDialog } from "./resize/smart-resize-dialog";
 import { prepareDocument } from "@/lib/image/thumbnail";
 import { Button, IconButton, Spinner, Toggle, cx } from "@/components/shared/ui";
 import { ErrorBoundary } from "@/components/shared/providers";
+import { BrandSymbol } from "@/components/navigation/site-header";
 import { PublishDialog } from "@/components/gallery/publish-dialog";
 
 const TOOLS: { tab: ToolTab; label: string; key?: string; icon: React.ComponentType<{ size?: number }> }[] = [
@@ -338,10 +339,8 @@ export function EditorApp({ projectId }: { projectId: string }) {
           <Link href="/projects" className="fs-tip flex h-8 w-8 items-center justify-center hover:bg-sunken" data-tip="My Projects" aria-label="Back to My Projects">
             <ArrowLeft size={15} />
           </Link>
-          <Link href="/" className="mr-1 flex items-center" aria-label="FRAME STUDIO home">
-            <span className="relative block h-4 w-4 border-[1.5px] border-fg">
-              <span className="absolute left-[2px] top-[2px] h-[7px] w-[7px] bg-accent" />
-            </span>
+          <Link href="/" className="mr-1 flex items-center" aria-label="Senitukang Studio home">
+            <BrandSymbol className="h-4 w-auto text-fg" />
           </Link>
           <ProjectName />
           <SaveIndicator />

@@ -1,6 +1,6 @@
-# FRAME STUDIO
+# Senitukang Studio
 
-**Create your own visual language.** A professional online graphic-design studio for posters, wallpapers, album covers, social formats and typographic compositions — built on mathematical Swiss grids.
+**Create your own Senitukang poster.** A professional online graphic-design studio for posters, wallpapers, album covers, social formats and typographic compositions — built on mathematical Swiss grids.
 
 - Konva canvas editor with layers, transforms, snapping, guides, rulers and undo/redo
 - Typography system: 27-face catalogue, custom WOFF/WOFF2/TTF/OTF upload, text styles, vertical type
