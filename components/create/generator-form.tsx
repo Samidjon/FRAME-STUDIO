@@ -29,9 +29,9 @@ export interface GeneratorForm {
 export const DEFAULT_FORM: GeneratorForm = {
   image: null,
   logo: null,
-  title: "Form Follows Light",
-  subtitle: "An exhibition on construction, rhythm and the grid",
-  body: "Twelve studios explore how systems of proportion shape what we see. Open daily 10–18, talks every Thursday.",
+  title: "Senitukang",
+  subtitle: "Hasil seni kayu & akrilik tersuai, sejak 2017",
+  body: "Daripada hadiah peribadi hingga perincian perkahwinan dan produk korporat, kami mengubah idea menjadi objek yang bermakna.",
   palette: [],
   style: "swiss",
   formatId: "ig-portrait",

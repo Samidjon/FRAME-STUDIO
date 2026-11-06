@@ -67,8 +67,8 @@ export function GeneratorStudio() {
         // Yield a frame so the loading state paints before the synchronous layout work.
         await new Promise((r) => requestAnimationFrame(() => r(null)));
         const generated = await getProvider().generate(input, browserMeasure);
-        // Every result carries the company logo; an uploaded logo is an addition to it.
-        const variants = generated.map((v) => ({ ...v, doc: withSenitukangBrand(v.doc, browserMeasure) }));
+        // Every result carries the company logo; the title stays what the user typed.
+        const variants = generated.map((v) => ({ ...v, doc: withSenitukangBrand(v.doc, browserMeasure, { keepTitle: true }) }));
         if (id !== req.current) return;
         if (!variants.length) throw new Error("No composition passed the layout checks. Try a shorter title or a different format.");
         const title = form.title.trim() || "Untitled";

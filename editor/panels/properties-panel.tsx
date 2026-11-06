@@ -10,6 +10,7 @@ import { TextProperties } from "@/editor/typography/text-properties";
 import { ImageProperties } from "@/editor/images/image-properties";
 import { ShapeProperties, TextureProperties } from "@/editor/shapes/shape-properties";
 import { GridSettingsPanel } from "@/editor/grid/grid-settings";
+import { LogoProperties } from "./logo-properties";
 import { SmartResizeDialog } from "@/editor/resize/smart-resize-dialog";
 import { FORMAT_PRESETS } from "@/types/project";
 
@@ -19,6 +20,7 @@ function DocumentProperties() {
   const doc = useEditor((s) => s.doc)!;
   const setDoc = useEditor((s) => s.setDoc);
   const [resizeOpen, setResizeOpen] = useState(false);
+  const logoId = doc.layers.find((l) => l.brandLocked)?.id;
   const preset = FORMAT_PRESETS.find((p) => p.width === doc.width && p.height === doc.height);
   return (
     <>
@@ -32,6 +34,13 @@ function DocumentProperties() {
           Smart resize…
         </Button>
       </Section>
+      {logoId && (
+        <div className="border-b border-line px-3 py-3">
+          <Button size="sm" variant="secondary" className="w-full" data-testid="change-logo" onClick={() => useEditor.getState().select([logoId])}>
+            Change logo…
+          </Button>
+        </div>
+      )}
       <Section index="02" title="Background">
         <ColorField label="Background" value={doc.background.color} onChange={(color) => color && setDoc((d) => ({ ...d, background: { ...d.background, color } }), { key: "bg" })} />
         <Toggle label="Transparent background" checked={doc.background.transparent} onChange={(transparent) => setDoc((d) => ({ ...d, background: { ...d.background, transparent } }))} />
@@ -78,13 +87,9 @@ export function PropertiesPanel() {
           </div>
           <TransformSection layer={single} />
           {single.type === "text" && <TextProperties layer={single} />}
-          {single.type === "image" && <ImageProperties layer={single} />}
+          {single.type === "image" && !single.brandLocked && <ImageProperties layer={single} />}
           {single.type === "shape" && !single.brandLocked && <ShapeProperties layer={single} />}
-          {single.brandLocked && (
-            <p className="border-b border-line px-3 py-3 text-[11px] leading-snug text-muted" data-testid="brand-note">
-              This is the Senitukang logo. You can move, resize and rotate it, but it always stays on the design.
-            </p>
-          )}
+          {single.brandLocked && <LogoProperties layer={single} />}
           {single.type === "texture" && <TextureProperties layer={single} />}
         </div>
       )}

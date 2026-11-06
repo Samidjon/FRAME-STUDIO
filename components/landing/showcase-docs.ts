@@ -17,6 +17,7 @@ import type { GridSettings } from "@/types/canvas";
 import type { ImageEffects, ImageLayer, Layer, ShapeLayer, TextLayer, TextureKind, TextureLayer } from "@/types/layer";
 import type { DesignDocument } from "@/types/project";
 import { withSenitukangBrand } from "@/core/brand/senitukang";
+import { SHOWCASE_COPY, applyCopy } from "@/core/brand/content-ms";
 
 export const INK = "#171717";
 export const PAPER = "#F0EDE5";
@@ -277,7 +278,7 @@ export interface ShowcaseItem {
   build: () => DesignDocument;
 }
 
-export const SHOWCASE: ShowcaseItem[] = [
+const SHOWCASE_SOURCE: ShowcaseItem[] = [
   { id: "swiss", title: "Raster System", kind: "Poster", format: "A3 Poster", dims: "3508 × 4961", grid: "12 col · column", fonts: "Space Grotesk / Inter / JetBrains Mono", alt: "Swiss poster with a large orange circle, a horizon rule and the words Raster System set huge in black.", build: swiss },
   { id: "dune", title: "Sand Memory", kind: "Editorial", format: "Portrait 4:5", dims: "1080 × 1350", grid: "6 × 8 · modular", fonts: "Space Grotesk / Noto Serif JP", alt: "Editorial cover: a red dune under a teal sky with vertical Japanese type and catalogue coordinates.", build: dune },
   { id: "album", title: "Liquid State", kind: "Album cover", format: "Album 1:1", dims: "3000 × 3000", grid: "4 × 4 · modular", fonts: "Space Grotesk / Instrument Serif", alt: "Album cover: a halftone chrome disc on a dark lavender duotone field, titled KAIRO, Liquid State.", build: album },
@@ -289,6 +290,11 @@ export const SHOWCASE: ShowcaseItem[] = [
   { id: "fold", title: "Paper Works", kind: "Campaign", format: "Portrait 4:5", dims: "1080 × 1350", grid: "6 × 8 · modular", fonts: "Archivo Black / Inter", alt: "Campaign post: folded white paper with heavy black type Paper Works and an orange tag.", build: fold },
   { id: "bloom", title: "Colour Is a Signal", kind: "Campaign story", format: "Story 9:16", dims: "1080 × 1920", grid: "6 × 12 · modular", fonts: "Space Grotesk / Inter", alt: "Vertical campaign story: an orange and lavender colour bloom above the headline Colour is a signal.", build: bloom },
 ];
+
+export const SHOWCASE: ShowcaseItem[] = SHOWCASE_SOURCE.map((s) => {
+  const copy = SHOWCASE_COPY[s.id];
+  return { ...s, title: copy.name, kind: copy.kind, alt: copy.alt, build: () => applyCopy(s.build(), copy) };
+});
 
 const cache = new Map<string, DesignDocument>();
 /** Memoised document for a showcase id (stable object identity keeps DocPreview effects quiet). */
@@ -334,9 +340,9 @@ export function generatorDoc(variant: number, pal: Palette): DesignDocument {
   const geo = computeGrid(GW, GH, GEN_GRID);
   const s = (c0: number, c1: number, r0: number, r1: number) => spanRect(geo, c0, c1, r0, r1);
   const { content } = geo;
-  const title = "Horizon";
-  const sub = "Studies in light";
-  const meta = "Nº 04 — 2027";
+  const title = "Senitukang";
+  const sub = "Hasil seni kayu & akrilik";
+  const meta = "Sejak 2017";
   const darkInk = pal.ink === PAPER ? INK : pal.ink;
   let bg = pal.bg;
   let layers: Layer[] = [];

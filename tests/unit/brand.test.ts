@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { SENITUKANG, isBrandLayer, sanitizeBrand, withSenitukangBrand } from "@/core/brand/senitukang";
+import { SENITUKANG, isBrandLayer, replaceBrandLogo, sanitizeBrand, withSenitukangBrand } from "@/core/brand/senitukang";
+import { SHOWCASE_COPY, TEMPLATE_COPY } from "@/core/brand/content-ms";
+import { SHOWCASE, showcaseDoc } from "@/components/landing/showcase-docs";
 import { TEMPLATES, getTemplate } from "@/core/templates";
 import { createDocument, createProject, createShapeLayer, createTextLayer, reidentifyLayers } from "@/core/document/factory";
 import { intersectionArea, layerBounds } from "@/core/geometry/transform";
@@ -77,6 +79,66 @@ describe("logo and name in every template", () => {
     expect((doc.layers[0] as TextLayer).text).toBe("Original title");
     expect(withSenitukangBrand(once)).toBe(once);
     expect(sanitizeBrand(once)).toBe(once);
+  });
+});
+
+describe("Malay company copy", () => {
+  const OLD = /Zürich|Ausstellung|Exhibition|Museum|Tokyo|Kyoto|Berlin|Rotterdam|Marseille|Milano|Workshop|Lecture|Vortrag|\bFS[—/]|\bLive\b|\bthe\b|[\u3040-\u30ff\u3400-\u9fff]/i;
+
+  it.each(TEMPLATES.map((t) => [t.id, t] as const))("%s has only Malay company text", (id, t) => {
+    const copy = TEMPLATE_COPY[id];
+    expect(t.name).toBe(copy.name);
+    expect(t.description).not.toBe("");
+    const texts = (t.build().layers.filter((l) => l.type === "text") as TextLayer[]).map((l) => l.text);
+    const known = new Set([SENITUKANG.name, ...Object.values(copy.text)]);
+    expect(texts.filter((x) => !known.has(x))).toEqual([]);
+    expect(texts.filter((x) => OLD.test(x))).toEqual([]);
+  });
+
+  it.each(Object.keys(SHOWCASE_COPY))("showcase %s has only Malay company text", (id) => {
+    const texts = (showcaseDoc(id).layers.filter((l) => l.type === "text") as TextLayer[]).map((l) => l.text);
+    const known = new Set([SENITUKANG.name, ...Object.values(SHOWCASE_COPY[id].text)]);
+    expect(texts.filter((x) => !known.has(x))).toEqual([]);
+    expect(SHOWCASE.find((s) => s.id === id)!.title).toBe(SHOWCASE_COPY[id].name);
+  });
+
+  it("states the company's founding year somewhere in every template", () => {
+    const missing = TEMPLATES.filter((t) => !Object.values(TEMPLATE_COPY[t.id].text).some((x) => /2017/.test(x))).map((t) => t.id);
+    expect(missing.length).toBeLessThanOrEqual(1);
+  });
+});
+
+describe("changing the logo", () => {
+  const branded = () => withSenitukangBrand(createDocument(1080, 1350));
+
+  it("switches to the full logo in place, keeping it protected and undistorted", () => {
+    const doc = branded();
+    const before = doc.layers.find(isBrandLayer)!;
+    const next = replaceBrandLogo(doc, { type: "vector", variant: "lockup" });
+    const logo = next.layers.find(isBrandLayer) as ShapeLayer;
+    expect(logo.id).toBe(before.id);
+    expect(logo.pathData).toBe(SENITUKANG.lockup.path);
+    expect(logo.width / logo.height).toBeCloseTo(SENITUKANG.lockup.viewBox.width / SENITUKANG.lockup.viewBox.height, 3);
+    expect(logo.x + logo.width / 2).toBeCloseTo(before.x + before.width / 2, 3);
+  });
+
+  it("an uploaded logo stays protected, and undo restores the company logo", () => {
+    st().load(createProject("t", branded()));
+    const original = logoOf().id;
+    st().setDoc((d) => replaceBrandLogo(d, { type: "image", assetId: "ast_1", width: 800, height: 400 }));
+    const img = st().doc!.layers.find(isBrandLayer)!;
+    expect(img.type).toBe("image");
+    expect(img.width / img.height).toBeCloseTo(2, 3);
+    st().deleteLayers([img.id]);
+    st().updateLayer(img.id, { visible: false, x: -9999 });
+    const after = st().doc!.layers.find(isBrandLayer)!;
+    expect(after.type).toBe("image");
+    expect(after.visible).toBe(true);
+    expect(after.x).toBeGreaterThanOrEqual(0);
+    st().undo();
+    st().undo();
+    expect(logoOf().type).toBe("shape");
+    expect(logoOf().id).toBe(original);
   });
 });
 

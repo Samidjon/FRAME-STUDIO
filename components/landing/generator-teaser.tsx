@@ -27,7 +27,7 @@ export function GeneratorTeaser() {
         <div className="mt-10 grid grid-cols-1 gap-4 border-y border-line py-4 md:grid-cols-12 md:items-center md:gap-6">
           <dl className="grid grid-cols-3 gap-4 md:col-span-6">
             {[
-              ["Input", "“Horizon” + image"],
+              ["Input", "“Senitukang” + image"],
               ["Grid", "6 × 8 modular"],
               ["Palette", pal.name],
             ].map(([k, v]) => (

@@ -1,12 +1,12 @@
 import type { Rect } from "@/types/canvas";
 import type { Layer, ShapeLayer, TextLayer } from "@/types/layer";
 import type { DesignDocument } from "@/types/project";
-import { createShapeLayer } from "@/core/document/factory";
+import { createImageLayer, createShapeLayer } from "@/core/document/factory";
 import { intersectionArea, layerBounds } from "@/core/geometry/transform";
 import { contrastRatio, mix } from "@/core/rendering/color";
 import { kitMeasure } from "@/core/templates/kit";
 import { layoutText, type MeasureFn } from "@/core/text/layout";
-import { SYMBOL_PATH, SYMBOL_VIEWBOX } from "./logo-paths";
+import { LOCKUP_PATH, LOCKUP_VIEWBOX, SYMBOL_PATH, SYMBOL_VIEWBOX } from "./logo-paths";
 
 /**
  * Company branding for every example design. The name replaces the main title
@@ -21,7 +21,13 @@ export const SENITUKANG = {
   ink: "#171717",
   paper: "#F0EDE5",
   symbol: { path: SYMBOL_PATH, viewBox: SYMBOL_VIEWBOX },
+  lockup: { path: LOCKUP_PATH, viewBox: LOCKUP_VIEWBOX },
 } as const;
+
+export type LogoVariant = "symbol" | "lockup";
+export type LogoSource =
+  | { type: "vector"; variant: LogoVariant }
+  | { type: "image"; assetId: string; width: number; height: number; name?: string };
 
 const ASPECT = SENITUKANG.symbol.viewBox.width / SENITUKANG.symbol.viewBox.height;
 
@@ -181,7 +187,7 @@ function findFreeSpot(doc: DesignDocument, text: Rect[], short: number): Rect | 
   return null;
 }
 
-function logoLayer(r: Rect, fill: string, fillRole: ShapeLayer["fillRole"]): ShapeLayer {
+function logoLayer(r: Rect, fill: string, fillRole: ShapeLayer["fillRole"], variant: LogoVariant = "symbol"): ShapeLayer {
   return createShapeLayer("path", {
     name: "Senitukang logo",
     brandLocked: true,
@@ -189,8 +195,8 @@ function logoLayer(r: Rect, fill: string, fillRole: ShapeLayer["fillRole"]): Sha
     y: r.y,
     width: r.width,
     height: r.height,
-    pathData: SENITUKANG.symbol.path,
-    pathViewBox: SENITUKANG.symbol.viewBox,
+    pathData: SENITUKANG[variant].path,
+    pathViewBox: SENITUKANG[variant].viewBox,
     fill,
     fillRole,
     stroke: null,
@@ -203,11 +209,11 @@ function logoLayer(r: Rect, fill: string, fillRole: ShapeLayer["fillRole"]): Sha
  * the name in place of the main title, the logo in place of a graphic form
  * (or, when there is none, in the clearest area).
  */
-export function withSenitukangBrand(doc: DesignDocument, measure: MeasureFn = kitMeasure): DesignDocument {
+export function withSenitukangBrand(doc: DesignDocument, measure: MeasureFn = kitMeasure, opts: { keepTitle?: boolean } = {}): DesignDocument {
   if (doc.layers.some(isBrandLayer)) return doc;
   const short = Math.min(doc.width, doc.height);
 
-  const title = findTitle(doc);
+  const title = opts.keepTitle ? null : findTitle(doc);
   const named: DesignDocument = title ? { ...doc, layers: doc.layers.map((l) => (l === title ? nameInTitle(title, doc, measure) : l)) } : doc;
   const text = visibleText(named, measure);
   const pad = short * 0.02;
@@ -237,15 +243,41 @@ export function withSenitukangBrand(doc: DesignDocument, measure: MeasureFn = ki
 }
 
 /**
+ * Swap the design's logo, keeping its position and visual weight. The result
+ * stays protected, whichever version or uploaded file is chosen.
+ */
+export function replaceBrandLogo(doc: DesignDocument, source: LogoSource): DesignDocument {
+  const logo = doc.layers.find(isBrandLayer);
+  if (!logo) return doc;
+  const aspect = source.type === "vector" ? SENITUKANG[source.variant].viewBox.width / SENITUKANG[source.variant].viewBox.height : source.width / Math.max(1, source.height);
+  const area = logo.width * logo.height;
+  const width = Math.sqrt(area * aspect);
+  const height = width / aspect;
+  const c = { x: logo.x + logo.width / 2, y: logo.y + logo.height / 2 };
+  const r = { x: c.x - width / 2, y: c.y - height / 2, width, height };
+  let next: Layer;
+  if (source.type === "vector") {
+    const fill = logo.type === "shape" && logo.fill ? logo.fill : contrastPick(surfacesUnder(doc, r, logo));
+    const role = logo.type === "shape" ? logo.fillRole : "none";
+    next = logoLayer(r, fill, role, source.variant);
+  } else {
+    next = createImageLayer(source.assetId, { name: "Senitukang logo", brandLocked: true, ...r });
+  }
+  next = { ...next, id: logo.id, rotation: logo.rotation, groupId: logo.groupId };
+  return { ...doc, layers: doc.layers.map((l) => (l === logo ? next : l)) };
+}
+
+/**
  * Enforce the logo's protection on any document. Applied to every edit, so it
  * holds whichever panel, shortcut, undo step or import made the change: the
  * logo stays single, visible, opaque, on top, undistorted, legible and on the page.
  */
 export function sanitizeBrand(doc: DesignDocument): DesignDocument {
   const logo = doc.layers.find(isBrandLayer);
-  if (!logo || logo.type !== "shape") return doc;
-  const vb = logo.pathViewBox ?? SENITUKANG.symbol.viewBox;
-  const aspect = vb.width / vb.height;
+  if (!logo) return doc;
+  const shape = logo.type === "shape" ? logo : null;
+  const vb = shape?.pathViewBox;
+  const aspect = vb ? vb.width / vb.height : logo.width / Math.max(1, logo.height);
   const short = Math.min(doc.width, doc.height);
 
   let width = Math.max(short * MIN_WIDTH, logo.width);
@@ -260,15 +292,16 @@ export function sanitizeBrand(doc: DesignDocument): DesignDocument {
   // The page colour can be changed under the logo; don't let it disappear.
   const onImage = doc.layers.some((l) => l.type === "image" && l.visible && intersectionArea(layerBounds(l), b) > 0);
   const bg = doc.background.color;
-  const swap = !doc.background.transparent && !onImage && logo.fill && contrastRatio(logo.fill, bg) < MIN_CONTRAST;
-  const fill = swap ? contrastPick([bg]) : logo.fill;
+  const swap = !!shape?.fill && !doc.background.transparent && !onImage && contrastRatio(shape.fill, bg) < MIN_CONTRAST;
+  const fill = swap ? contrastPick([bg]) : shape?.fill;
 
   const unchanged =
-    width === logo.width && height === logo.height && x === logo.x && y === logo.y && fill === logo.fill &&
+    width === logo.width && height === logo.height && x === logo.x && y === logo.y && fill === shape?.fill &&
     logo.visible && logo.opacity === 1 && logo.blendMode === "normal" && !logo.locked &&
     doc.layers[doc.layers.length - 1] === logo && doc.layers.filter(isBrandLayer).length === 1;
   if (unchanged) return doc;
 
-  const fixed: ShapeLayer = { ...logo, width, height, x, y, fill, visible: true, opacity: 1, blendMode: "normal", locked: false, fillRole: swap ? "none" : logo.fillRole };
+  const base = { width, height, x, y, visible: true, opacity: 1, blendMode: "normal" as const, locked: false };
+  const fixed: Layer = shape ? { ...shape, ...base, fill: fill ?? null, fillRole: swap ? "none" : shape.fillRole } : { ...logo, ...base };
   return { ...doc, layers: [...doc.layers.filter((l) => !isBrandLayer(l)), fixed] };
 }

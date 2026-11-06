@@ -1,3 +1,4 @@
+import { createDocument, createTextLayer } from "@/core/document/factory";
 import { describe, expect, it } from "vitest";
 import { TEMPLATES, TEMPLATE_CATEGORIES, getTemplate } from "@/core/templates";
 import { STYLE_PRESETS, applyStyle, getStyle } from "@/core/presets/styles";
@@ -120,9 +121,8 @@ describe("style presets", () => {
   });
 
   it("keeps Japanese text in a Japanese family", () => {
-    const doc = getTemplate("jp-ma-a4")!.build();
-    const styled = applyStyle(doc, "swiss", 0);
-    const jp = styled.layers.find((l): l is TextLayer => l.type === "text" && /[぀-鿿]/.test(l.text) && l.vertical)!;
+    const doc = createDocument(1080, 1350, { layers: [createTextLayer({ role: "display", text: "間の美学", fontFamily: "Noto Serif JP", width: 400 })] });
+    const jp = applyStyle(doc, "swiss", 0).layers[0] as TextLayer;
     expect(["Noto Sans JP", "Noto Serif JP", "Zen Kaku Gothic New"]).toContain(jp.fontFamily);
   });
 });
