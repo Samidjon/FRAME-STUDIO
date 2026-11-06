@@ -43,6 +43,8 @@ export interface LayerBase {
   blendMode: BlendMode;
   /** Layers sharing a groupId are selected and transformed together. */
   groupId?: string | null;
+  /** Company logo: can be moved and scaled, never removed. Enforced by sanitizeBrand. */
+  brandLocked?: boolean;
 }
 
 export type TextRole = "display" | "heading" | "subheading" | "body" | "caption" | "metadata";

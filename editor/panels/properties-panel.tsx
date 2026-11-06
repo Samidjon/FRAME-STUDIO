@@ -79,7 +79,12 @@ export function PropertiesPanel() {
           <TransformSection layer={single} />
           {single.type === "text" && <TextProperties layer={single} />}
           {single.type === "image" && <ImageProperties layer={single} />}
-          {single.type === "shape" && <ShapeProperties layer={single} />}
+          {single.type === "shape" && !single.brandLocked && <ShapeProperties layer={single} />}
+          {single.brandLocked && (
+            <p className="border-b border-line px-3 py-3 text-[11px] leading-snug text-muted" data-testid="brand-note">
+              This is the Senitukang logo. You can move, resize and rotate it, but it always stays on the design.
+            </p>
+          )}
           {single.type === "texture" && <TextureProperties layer={single} />}
         </div>
       )}

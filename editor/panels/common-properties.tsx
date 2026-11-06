@@ -66,10 +66,14 @@ export function TransformSection({ layer }: { layer: Layer }) {
           </div>
         )}
         <NumberField label="R" value={layer.rotation} min={-360} max={360} onChange={(rotation) => set({ rotation }, "r")} suffix="°" precision={1} />
-        <NumberField label="O" value={Math.round(layer.opacity * 100)} min={0} max={100} onChange={(o) => set({ opacity: o / 100 }, "o")} suffix="%" />
+        {!layer.brandLocked && <NumberField label="O" value={Math.round(layer.opacity * 100)} min={0} max={100} onChange={(o) => set({ opacity: o / 100 }, "o")} suffix="%" />}
       </Row>
-      <Slider label="Opacity" value={Math.round(layer.opacity * 100)} onChange={(o) => set({ opacity: o / 100 }, "o")} format={(v) => `${v}%`} />
-      <Select label="Blend mode" value={layer.blendMode} options={BLEND_MODES} onChange={(blendMode) => update(layer.id, { blendMode })} />
+      {!layer.brandLocked && (
+        <>
+          <Slider label="Opacity" value={Math.round(layer.opacity * 100)} onChange={(o) => set({ opacity: o / 100 }, "o")} format={(v) => `${v}%`} />
+          <Select label="Blend mode" value={layer.blendMode} options={BLEND_MODES} onChange={(blendMode) => update(layer.id, { blendMode })} />
+        </>
+      )}
     </Section>
   );
 }
@@ -81,12 +85,13 @@ export function LayerActionsBar({ ids }: { ids: string[] }) {
   const layers = doc?.layers.filter((l) => ids.includes(l.id)) ?? [];
   const locked = layers.length > 0 && layers.every((l) => l.locked);
   const hidden = layers.length > 0 && layers.every((l) => !l.visible);
+  const onlyBrand = layers.length > 0 && layers.every((l) => l.brandLocked);
   return (
     <div className="flex items-center gap-0.5">
-      <IconButton size="sm" label={hidden ? "Show" : "Hide"} onClick={() => toggleVisibility(ids)}>{hidden ? <EyeOff size={14} /> : <Eye size={14} />}</IconButton>
-      <IconButton size="sm" label={locked ? "Unlock" : "Lock"} onClick={() => toggleLock(ids)}>{locked ? <Lock size={14} /> : <Unlock size={14} />}</IconButton>
+      <IconButton size="sm" disabled={onlyBrand} label={hidden ? "Show" : "Hide"} onClick={() => toggleVisibility(ids)}>{hidden ? <EyeOff size={14} /> : <Eye size={14} />}</IconButton>
+      <IconButton size="sm" disabled={onlyBrand} label={locked ? "Unlock" : "Lock"} onClick={() => toggleLock(ids)}>{locked ? <Lock size={14} /> : <Unlock size={14} />}</IconButton>
       <IconButton size="sm" label="Duplicate" shortcut="Ctrl+D" onClick={() => dup(ids)}><Copy size={14} /></IconButton>
-      <IconButton size="sm" label="Delete" shortcut="Del" onClick={() => del(ids)} className="hover:!text-danger"><Trash2 size={14} /></IconButton>
+      <IconButton size="sm" disabled={onlyBrand} label="Delete" shortcut="Del" onClick={() => del(ids)} className="hover:!text-danger"><Trash2 size={14} /></IconButton>
     </div>
   );
 }

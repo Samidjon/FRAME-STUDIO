@@ -401,7 +401,8 @@ export function TemplatesPanel() {
       const sx = doc.width / tdoc.width;
       const sy = doc.height / tdoc.height;
       const k = Math.min(sx, sy);
-      const layers = reidentifyLayers(tdoc.layers).map((l) => {
+      const hasLogo = doc.layers.some((l) => l.brandLocked);
+      const layers = reidentifyLayers(tdoc.layers.filter((l) => !(hasLogo && l.brandLocked))).map((l) => {
         const scaled = { ...l, x: l.x * sx, y: l.y * sy, width: l.width * k, height: l.height * k };
         return l.type === "text" ? { ...scaled, fontSize: l.fontSize * k } : scaled;
       });

@@ -188,7 +188,18 @@ export function pathToSvgD(cmds: PathCmd[]): string {
  * Minimal SVG path parser supporting M L H V C S Q T Z (absolute + relative).
  * Elliptical arcs (A) are approximated by a straight segment to their end point.
  */
+const parseCache = new Map<string, PathCmd[]>();
+
 export function parseSvgPath(d: string): PathCmd[] {
+  const hit = parseCache.get(d);
+  if (hit) return hit;
+  const out = parsePathCommands(d);
+  if (parseCache.size > 32) parseCache.clear();
+  parseCache.set(d, out);
+  return out;
+}
+
+function parsePathCommands(d: string): PathCmd[] {
   const out: PathCmd[] = [];
   const tokens = d.match(/[a-zA-Z]|-?\d*\.?\d+(?:e[-+]?\d+)?/g) ?? [];
   let i = 0;

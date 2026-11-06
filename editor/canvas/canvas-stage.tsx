@@ -98,10 +98,13 @@ export function CanvasStage() {
   const single = selectedLayers.length === 1 ? selectedLayers[0] : null;
   const isLine = single?.type === "shape" && single.shape === "line";
   const isText = single?.type === "text";
-  const keepRatio = !!single && (single.type === "image" || single.type === "text");
+  const isBrand = !!single?.brandLocked;
+  const keepRatio = !!single && (single.type === "image" || single.type === "text" || isBrand);
   const anchors = isLine
     ? ["middle-left", "middle-right"]
-    : isText
+    : isBrand
+      ? ["top-left", "top-right", "bottom-left", "bottom-right"]
+      : isText
       ? single!.type === "text" && single.vertical
         ? ["top-left", "top-right", "bottom-left", "bottom-right"]
         : ["top-left", "top-right", "bottom-left", "bottom-right", "middle-left", "middle-right"]

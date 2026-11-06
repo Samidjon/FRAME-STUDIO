@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, Eye, EyeOff, Image as ImageIcon, Lock, Shapes, Sparkles, Type, Unlock } from "lucide-react";
+import { ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, Eye, EyeOff, Image as ImageIcon, Lock, Shapes, ShieldCheck, Sparkles, Type, Unlock } from "lucide-react";
 import type { Layer } from "@/types/layer";
 import { useEditor } from "@/stores/editor-store";
 import { IconButton, cx } from "@/components/shared/ui";
@@ -51,7 +51,7 @@ export function LayersPanel() {
               role="option"
               aria-selected={sel}
               tabIndex={0}
-              draggable={renaming !== l.id}
+              draggable={renaming !== l.id && !l.brandLocked}
               data-testid="layer-row"
               onDragStart={(e) => {
                 setDragId(l.id);
@@ -109,6 +109,12 @@ export function LayersPanel() {
               ) : (
                 <span className="min-w-0 flex-1 truncate">{l.name}</span>
               )}
+              {l.brandLocked ? (
+                <span className="shrink-0" title="Protected logo" aria-label="Protected logo">
+                  <ShieldCheck size={12} />
+                </span>
+              ) : (
+                <>
               <button
                 aria-label={l.locked ? `Unlock ${l.name}` : `Lock ${l.name}`}
                 onClick={(e) => {
@@ -129,6 +135,8 @@ export function LayersPanel() {
               >
                 {l.visible ? <Eye size={12} /> : <EyeOff size={12} />}
               </button>
+                </>
+              )}
             </li>
           );
         })}

@@ -199,6 +199,7 @@ export function paste() {
   const groupMap = new Map<string, string>();
   const copies = clipboard.map((l) => {
     const c = cloneLayer(l, off);
+    c.brandLocked = false;
     if (l.groupId) {
       if (!groupMap.has(l.groupId)) groupMap.set(l.groupId, uid("grp"));
       c.groupId = groupMap.get(l.groupId)!;

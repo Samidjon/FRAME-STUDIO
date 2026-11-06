@@ -22,6 +22,7 @@ export function ContextMenu({ state, onClose }: { state: MenuState; onClose: () 
   const grouped = layers.some((l) => l.groupId);
   const locked = layers.every((l) => l.locked);
   const hidden = layers.every((l) => !l.visible);
+  const onlyBrand = layers.length > 0 && layers.every((l) => l.brandLocked);
 
   useEffect(() => {
     ref.current?.querySelector<HTMLButtonElement>("button")?.focus();
@@ -36,23 +37,23 @@ export function ContextMenu({ state, onClose }: { state: MenuState; onClose: () 
   }, [onClose]);
 
   const items: Item[] = [
-    { label: "Cut", shortcut: `${MOD}X`, run: cutSelection },
+    { label: "Cut", shortcut: `${MOD}X`, run: cutSelection, disabled: onlyBrand },
     { label: "Copy", shortcut: `${MOD}C`, run: copySelection },
     { label: "Paste", shortcut: `${MOD}V`, run: paste },
     { label: "Duplicate", shortcut: `${MOD}D`, run: () => ed.duplicateLayers(sel) },
     "sep",
-    { label: "Bring to Front", shortcut: `${MOD}⇧]`, run: () => ed.reorder(sel, "front") },
-    { label: "Bring Forward", shortcut: `${MOD}]`, run: () => ed.reorder(sel, "up") },
-    { label: "Send Backward", shortcut: `${MOD}[`, run: () => ed.reorder(sel, "down") },
-    { label: "Send to Back", shortcut: `${MOD}⇧[`, run: () => ed.reorder(sel, "back") },
+    { label: "Bring to Front", shortcut: `${MOD}⇧]`, run: () => ed.reorder(sel, "front"), disabled: onlyBrand },
+    { label: "Bring Forward", shortcut: `${MOD}]`, run: () => ed.reorder(sel, "up"), disabled: onlyBrand },
+    { label: "Send Backward", shortcut: `${MOD}[`, run: () => ed.reorder(sel, "down"), disabled: onlyBrand },
+    { label: "Send to Back", shortcut: `${MOD}⇧[`, run: () => ed.reorder(sel, "back"), disabled: onlyBrand },
     "sep",
     { label: "Group", shortcut: `${MOD}G`, run: () => ed.group(sel), disabled: sel.length < 2 },
     { label: "Ungroup", shortcut: `${MOD}⇧G`, run: () => ed.ungroup(sel), disabled: !grouped },
     { label: "Center on Page", run: () => (ed.align("hcenter", true), ed.align("vcenter", true)) },
-    { label: locked ? "Unlock" : "Lock", shortcut: `${MOD}L`, run: () => toggleLock(sel) },
-    { label: hidden ? "Show" : "Hide", shortcut: `${MOD}⇧H`, run: () => toggleVisibility(sel) },
+    { label: locked ? "Unlock" : "Lock", shortcut: `${MOD}L`, run: () => toggleLock(sel), disabled: onlyBrand },
+    { label: hidden ? "Show" : "Hide", shortcut: `${MOD}⇧H`, run: () => toggleVisibility(sel), disabled: onlyBrand },
     "sep",
-    { label: "Delete", shortcut: "Del", run: () => ed.deleteLayers(sel), danger: true },
+    { label: "Delete", shortcut: "Del", run: () => ed.deleteLayers(sel), danger: true, disabled: onlyBrand },
   ];
 
   // Keep menu inside the container.

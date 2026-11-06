@@ -7,6 +7,8 @@ import type { DesignDocument, Project } from "@/types/project";
 import { cloneLayer, uid } from "@/core/document/factory";
 import { alignLayers, distributeLayers, layerBounds, unionBounds, type AlignMode } from "@/core/geometry/transform";
 import { textLayoutFor } from "@/core/rendering/draw";
+import { isBrandLayer, sanitizeBrand } from "@/core/brand/senitukang";
+import { useUi } from "@/stores/ui-store";
 
 export type ToolTab = "select" | "text" | "image" | "shapes" | "background" | "grid" | "assets" | "templates" | "textures" | "layers" | "styles";
 export type SaveStatus = "idle" | "dirty" | "saving" | "saved" | "error";
@@ -110,7 +112,8 @@ export const useEditor = create<EditorState>((set, get) => {
     set({ past: [...s.past.slice(-HISTORY_LIMIT + 1), s.doc], future: [], lastKey: opts?.key ?? null, lastKeyAt: now });
   };
 
-  const commitDoc = (doc: DesignDocument) => {
+  const commitDoc = (next: DesignDocument) => {
+    const doc = sanitizeBrand(next);
     const ids = new Set(doc.layers.map((l) => l.id));
     const s = get();
     set({
@@ -145,7 +148,7 @@ export const useEditor = create<EditorState>((set, get) => {
     load: (p) => {
       set({
         project: p,
-        doc: { ...p.doc, layers: p.doc.layers.map(syncTextBox) },
+        doc: sanitizeBrand({ ...p.doc, layers: p.doc.layers.map(syncTextBox) }),
         selection: [],
         editingTextId: null,
         past: [],
@@ -194,7 +197,9 @@ export const useEditor = create<EditorState>((set, get) => {
     deleteLayers: (ids) => {
       const d = get().doc;
       if (!d) return;
-      const kill = new Set(ids.filter((id) => !d.layers.find((l) => l.id === id)?.locked));
+      const targets = d.layers.filter((l) => ids.includes(l.id));
+      const kill = new Set(targets.filter((l) => !l.locked && !isBrandLayer(l)).map((l) => l.id));
+      if (targets.some(isBrandLayer)) useUi.getState().toast({ kind: "info", title: "The Senitukang logo can't be removed", description: "You can move and resize it." });
       if (!kill.size) return;
       get().setDoc((doc) => ({ ...doc, layers: doc.layers.filter((l) => !kill.has(l.id)) }));
       set({ selection: [] });
@@ -214,6 +219,7 @@ export const useEditor = create<EditorState>((set, get) => {
           c.groupId = groupMap.get(l.groupId)!;
         }
         c.locked = false;
+        c.brandLocked = false;
         copies.push(c);
       }
       // insert copies right above the top-most original
